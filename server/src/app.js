@@ -1,36 +1,26 @@
-const express = require("express")
-const cookieParser = require("cookie-parser")
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const errorMiddleware = require("./shared/middleware/error.middleware");
+const notFoundMiddleware = require("./shared/middleware/notFound.middleware");
 
+const app = express();
 
-const app = express()
+app.use(express.json());
+app.use(cookieParser());
 
-
-app.use(express.json())
-app.use(cookieParser())
-
-const authRouter = require("./routes/auth.routes")
-const accountRouter = require("./routes/account.routes")
-const transactionRoutes = require("./routes/transaction.routes")
+const authRouter = require("./modules/auth/auth.routes");
+const accountRouter = require("./modules/accounts/account.routes");
+const transactionRouter = require("./modules/transactions/transaction.routes");
 
 app.get("/", (req, res) => {
-    res.send("Ledger Service is up and running")
-})
+    res.send("Ledger Service is up and running");
+});
 
-app.use("/api/auth", authRouter)
-app.use("/api/accounts", accountRouter)
-app.use("/api/transactions", transactionRoutes)
+app.use("/api/auth", authRouter);
+app.use("/api/accounts", accountRouter);
+app.use("/api/transactions", transactionRouter);
 
-app.use((req, res) => {
-    res.status(404).json({
-        message: "Route not found"
-    })
-})
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
 
-app.use((err, req, res, next) => {
-    console.error("Unhandled error:", err)
-    res.status(err.status || 500).json({
-        message: err.message || "Something went wrong on the server"
-    })
-})
-
-module.exports = app
+module.exports = app;
