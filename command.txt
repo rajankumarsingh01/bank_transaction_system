@@ -1,0 +1,31 @@
+🖥️ Terminal 1 — Backend (Node.js)
+powershellcd "D:\MERN Microservices Projects\Bank System\server"
+npm run dev
+Agar Docker se chalana ho (backend + MongoDB dono ek saath):
+powershellcd "D:\MERN Microservices Projects\Bank System\server"
+docker compose up
+
+🖥️ Terminal 2 — ML Service (Python/FastAPI)
+powershellcd "D:\MERN Microservices Projects\Bank System\ml-service"
+venv\Scripts\activate
+uvicorn app.main:app --reload --port 8001
+
+Agar fraud_model.joblib pehle se bana hua hai (ek baar train kiya hua), toh dubara train karne ki zaroorat nahi — seedha uvicorn command chala sakte ho. Agar naya laptop/fresh clone hai, pehle yeh chalao:
+powershellpip install -r requirements.txt
+python train/generate_data.py
+python train/train_model.py
+
+
+🖥️ Terminal 3 — Frontend (React/Vite)
+powershellcd "D:\MERN Microservices Projects\Bank System\client"
+npm run dev
+
+✅ Sab Chalne Ke Baad — URLs
+ServiceURLFrontend (App)http://localhost:5173Backend APIhttp://localhost:3000Swagger Docshttp://localhost:3000/api-docsML Service Docshttp://localhost:8001/docs
+
+📌 Quick Checklist — Sahi Order
+
+Pehle MongoDB chalu honi chahiye (agar Docker use nahi kar rahe, toh local MongoDB replica set already chalu honi chahiye)
+Phir ML service (uvicorn)
+Phir Backend (npm run dev) — kyunki isko ML service ka URL chahiye hota hai transactions ke waqt
+Aakhir mein Frontend (npm run dev)
