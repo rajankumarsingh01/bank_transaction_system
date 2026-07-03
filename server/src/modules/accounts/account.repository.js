@@ -16,6 +16,10 @@ class AccountRepository {
         return accountModel.findById(id);
     }
 
+    async findByIdForUpdate(id, session) {
+        return accountModel.findById(id).session(session);
+    }
+
     async update(id, data) {
         return accountModel.findByIdAndUpdate(
             id,

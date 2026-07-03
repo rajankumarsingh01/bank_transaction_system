@@ -1,0 +1,42 @@
+
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: ledger-mongo-dev
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data-dev:/data/db
+    healthcheck:
+      test: |
+        mongosh --quiet --eval "try { rs.status() } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  app:
+    image: node:20-alpine
+    container_name: ledger-app-dev
+    working_dir: /app
+    command: sh -c "npm install && npx nodemon server.js"
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ledger?replicaSet=rs0
+      - NODE_ENV=development
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data-dev:

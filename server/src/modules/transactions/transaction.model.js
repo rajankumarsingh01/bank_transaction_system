@@ -32,6 +32,15 @@ const transactionSchema = new mongoose.Schema({
         required: [ true, "Idempotency Key is required for creating a transaction" ],
         index: true,
         unique: true
+    },
+    reversalOf: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "transaction",
+        default: null
+    },
+    riskScore: {
+        type: Number,
+        default: null
     }
 }, {
     timestamps: true

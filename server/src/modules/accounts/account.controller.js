@@ -8,13 +8,7 @@ const createAccount = asyncHandler(async (req, res) => {
         await AccountService.createAccount(req.user._id);
 
     return res.status(201).json(
-
-        new ApiResponse(
-            201,
-            account,
-            "Account created successfully"
-        )
-
+        new ApiResponse(201, account, "Account created successfully")
     );
 
 });
@@ -28,20 +22,24 @@ const getMyAccount = asyncHandler(async (req, res) => {
         await account.getBalance();
 
     return res.json(
+        new ApiResponse(200, { ...account.toObject(), balance })
+    );
 
-        new ApiResponse(
-            200,
-            {
-                ...account.toObject(),
-                balance
-            }
-        )
+});
 
+const updateAccountStatus = asyncHandler(async (req, res) => {
+
+    const account =
+        await AccountService.updateStatus(req.user._id, req.body.status);
+
+    return res.json(
+        new ApiResponse(200, account, "Account status updated successfully")
     );
 
 });
 
 module.exports = {
     createAccount,
-    getMyAccount
+    getMyAccount,
+    updateAccountStatus
 };

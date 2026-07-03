@@ -1,32 +1,31 @@
 const mongoose = require("mongoose");
+const logger = require("../logger/logger");
 
-async function withTransaction(callback){
+async function withTransaction(callback) {
 
-    const session =
-    await mongoose.startSession();
+    const session = await mongoose.startSession();
 
     session.startTransaction();
 
-    try{
+    try {
 
-        const result =
-        await callback(session);
+        const result = await callback(session);
 
         await session.commitTransaction();
 
         return result;
 
     }
-
-    catch(err){
+    catch (err) {
 
         await session.abortTransaction();
+
+        logger.error({ err: err.message }, "Transaction aborted");
 
         throw err;
 
     }
-
-    finally{
+    finally {
 
         session.endSession();
 

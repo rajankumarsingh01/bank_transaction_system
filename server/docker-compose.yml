@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: ledger-mongo
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: |
+        mongosh --quiet --eval "try { rs.status() } catch(e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 5s
+
+  ml-service:
+    build:
+      context: ../ml-service
+      dockerfile: Dockerfile
+    container_name: ledger-ml-service
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - FRAUD_SCORE_THRESHOLD=0.7
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ledger-app
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ledger?replicaSet=rs0
+      - ML_SERVICE_URL=http://ml-service:8001
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+volumes:
+  mongo-data:

@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const logger = require('../../shared/logger/logger');
 
 let transporter = null;
 
@@ -25,13 +26,12 @@ const sendEmail = async (to, subject, text, html) => {
             html,
         });
 
-        console.log('Message sent: %s', info.messageId);
+        logger.info({ messageId: info.messageId, to }, 'Email sent successfully');
     } catch (error) {
-        console.error('Error sending email:', error);
+        logger.error({ err: error.message, to }, 'Error sending email');
         throw error;
     }
 };
-
 
 async function sendRegistrationEmail(userEmail, name) {
     const subject = 'Welcome to Backend Ledger!';
