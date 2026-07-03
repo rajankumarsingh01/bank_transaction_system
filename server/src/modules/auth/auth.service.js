@@ -3,7 +3,7 @@ const crypto = require("crypto");
 
 const authRepository = require("./auth.repository");
 const refreshTokenRepository = require("./refreshToken.repository");
-const emailService = require("../notifications/email.service");
+const { enqueueRegistrationEmail } = require("../../shared/queues/email.queue");
 const ApiError = require("../../shared/utils/ApiError");
 const parseDuration = require("../../shared/utils/parseDuration");
 
@@ -50,9 +50,7 @@ class AuthService {
 
         const tokens = await this.issueTokens(user);
 
-        emailService
-            .sendRegistrationEmail(user.email, user.name)
-            .catch(console.error);
+        await enqueueRegistrationEmail(user.email, user.name);
 
         return {
             user: { _id: user._id, email: user.email, name: user.name },

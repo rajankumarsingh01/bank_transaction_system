@@ -1,6 +1,16 @@
-
-
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: ledger-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   mongo:
     image: mongo:7
     container_name: ledger-mongo-dev
@@ -27,6 +37,8 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "3000:3000"
     env_file:
@@ -34,9 +46,12 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/ledger?replicaSet=rs0
       - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - .:/app
       - /app/node_modules
 
 volumes:
   mongo-data-dev:
+  

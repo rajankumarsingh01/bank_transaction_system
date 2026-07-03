@@ -53,3 +53,15 @@ jest.mock("../src/modules/notifications/email.service", () => ({
     sendTransactionEmail: jest.fn().mockResolvedValue(true),
     sendTransactionFailureEmail: jest.fn().mockResolvedValue(true)
 }));
+
+// Mock BullMQ email queue so tests don't require a real Redis connection
+jest.mock("../src/shared/queues/email.queue", () => ({
+    enqueueTransactionEmail: jest.fn().mockResolvedValue(true),
+    enqueueRegistrationEmail: jest.fn().mockResolvedValue(true)
+}));
+
+// Mock Socket.IO manager so tests don't require a real socket server
+jest.mock("../src/shared/socket/socket.manager", () => ({
+    initSocket: jest.fn(),
+    emitToUser: jest.fn()
+}));

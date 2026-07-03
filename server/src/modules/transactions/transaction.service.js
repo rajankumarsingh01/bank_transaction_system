@@ -5,9 +5,9 @@ const AccountRepository = require("../accounts/account.repository");
 const withTransaction = require("../../shared/database/transaction");
 
 const ApiError = require("../../shared/utils/ApiError");
-const emailService = require("../notifications/email.service");
+const { enqueueTransactionEmail } = require("../../shared/queues/email.queue");
 const FraudService = require("./fraud.service");
-
+const { emitToUser } = require("../../shared/socket/socket.manager");
 
 class TransactionService {
 
@@ -207,16 +207,38 @@ class TransactionService {
 
         });
 
-        await emailService.sendTransactionEmail(
+       await enqueueTransactionEmail(
             user.email,
             user.name,
             data.amount,
             data.toAccount
         );
 
+        // ---- Real-time notification to receiver ----
+        const receiverAccount = await AccountRepository.findById(data.toAccount);
+
+        if (receiverAccount) {
+            emitToUser(receiverAccount.user, "transaction:received", {
+                transactionId: transaction._id,
+                amount: data.amount,
+                senderName: user.name,
+                createdAt: transaction.createdAt
+            });
+        }
+
+        emitToUser(user._id, "transaction:sent", {
+            transactionId: transaction._id,
+            amount: data.amount,
+            toAccount: data.toAccount,
+            createdAt: transaction.createdAt
+        });
+        // ---- End notification ----
+
         return transaction;
 
     }
+
+    
 
     async fundAccount(data, systemUser) {
 

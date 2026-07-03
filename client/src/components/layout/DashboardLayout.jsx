@@ -1,7 +1,10 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { useSocket } from "../../hooks/useSocket";
 
 function DashboardLayout() {
+
+    useSocket();
 
     return (
         <div className="flex min-h-screen bg-gray-50">
