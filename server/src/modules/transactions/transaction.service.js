@@ -39,13 +39,17 @@ class TransactionService {
 
     }
 
-    async validateAccountsBasic(fromAccount, toAccount) {
+  async validateAccountsBasic(fromAccount, toAccount, requestingUserId) {
 
         const sender = await AccountRepository.findById(fromAccount);
         const receiver = await AccountRepository.findById(toAccount);
 
         if (!sender || !receiver) {
             throw new ApiError(404, "Invalid Account");
+        }
+
+        if (sender.user.toString() !== requestingUserId.toString()) {
+            throw new ApiError(403, "You are not authorized to transfer from this account");
         }
 
         if (sender.status !== "ACTIVE") {
@@ -132,12 +136,12 @@ class TransactionService {
 
     }
 
-    async transfer(data, user) {
+  async transfer(data, user) {
 
         await this.validateIdempotency(data.idempotencyKey);
 
         // Basic pre-check (fast fail before opening a session)
-        await this.validateAccountsBasic(data.fromAccount, data.toAccount);
+        await this.validateAccountsBasic(data.fromAccount, data.toAccount, user._id);
 
         // ---- Fraud Check (ML microservice) ----
         const isNewReceiver =
@@ -267,12 +271,20 @@ class TransactionService {
 
     }
 
-    async reverseTransaction(transactionId, requestingUser) {
+   async reverseTransaction(transactionId, requestingUser) {
 
         const original = await TransactionRepository.findById(transactionId);
 
         if (!original) {
             throw new ApiError(404, "Transaction not found");
+        }
+
+        const existingReversal = await TransactionRepository.findByIdempotencyKey(
+            `reversal-${original._id}`
+        );
+
+        if (existingReversal) {
+            throw new ApiError(409, "This transaction has already been reversed");
         }
 
         if (original.status !== "COMPLETED") {
@@ -287,14 +299,6 @@ class TransactionService {
                 400,
                 "A reversal transaction cannot itself be reversed"
             );
-        }
-
-        const existingReversal = await TransactionRepository.findByIdempotencyKey(
-            `reversal-${original._id}`
-        );
-
-        if (existingReversal) {
-            throw new ApiError(409, "This transaction has already been reversed");
         }
 
         // Authorization: only the original sender, receiver, or a system user can reverse
