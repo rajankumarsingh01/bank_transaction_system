@@ -2,6 +2,7 @@ const { MongoMemoryReplSet } = require("mongodb-memory-server");
 const mongoose = require("mongoose");
 
 process.env.NODE_ENV = "test";
+process.env.LOG_LEVEL = "silent";
 process.env.ACCESS_TOKEN_SECRET = "test_access_secret_key_min_20_chars";
 process.env.REFRESH_TOKEN_SECRET = "test_refresh_secret_key_min_20_chars";
 process.env.ACCESS_TOKEN_EXPIRY = "15m";
