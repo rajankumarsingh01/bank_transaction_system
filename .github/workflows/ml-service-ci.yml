@@ -9,6 +9,7 @@ on:
     branches: [ main ]
     paths:
       - "ml-service/**"
+  workflow_dispatch:
 
 jobs:
   train-and-verify:
