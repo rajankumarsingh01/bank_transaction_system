@@ -11,6 +11,7 @@ import DashboardPage from "./pages/DashboardPage";
 import TransferPage from "./pages/TransferPage";
 import HistoryPage from "./pages/HistoryPage";
 import AccountPage from "./pages/AccountPage";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -38,6 +39,7 @@ function App() {
                             <Route path="/transfer" element={<TransferPage />} />
                             <Route path="/history" element={<HistoryPage />} />
                             <Route path="/account" element={<AccountPage />} />
+                             <Route path="/admin" element={<AdminPage />} />
                         </Route>
                     </Route>
 

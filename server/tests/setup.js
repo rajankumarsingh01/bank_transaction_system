@@ -65,3 +65,10 @@ jest.mock("../src/shared/socket/socket.manager", () => ({
     initSocket: jest.fn(),
     emitToUser: jest.fn()
 }));
+
+// Mock scheduled payment queue so tests don't require a real Redis connection
+jest.mock("../src/shared/queues/scheduledPayment.queue", () => ({
+    scheduledPaymentQueue: {},
+    scheduleRecurringPayment: jest.fn().mockResolvedValue(true),
+    cancelRecurringPayment: jest.fn().mockResolvedValue(true)
+}));

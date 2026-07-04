@@ -9,6 +9,7 @@ const connectToDB = require("./src/shared/config/db")
 const logger = require("./src/shared/logger/logger")
 const { initSocket } = require("./src/shared/socket/socket.manager")
 const startEmailWorker = require("./src/shared/queues/email.worker")
+const startScheduledPaymentWorker = require("./src/shared/queues/scheduledPayment.worker")
 
 connectToDB()
 
@@ -19,6 +20,8 @@ const httpServer = http.createServer(app)
 initSocket(httpServer)
 
 startEmailWorker()
+
+startScheduledPaymentWorker()
 
 httpServer.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`)

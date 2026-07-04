@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ArrowLeftRight, History, User, Landmark, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, History, User, Landmark, LogOut, Menu, X, ShieldAlert } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { authApi } from "../../api/auth.api";
@@ -13,12 +13,16 @@ const navItems = [
     { to: "/account", label: "Account", icon: User }
 ];
 
+const adminNavItem = { to: "/admin", label: "Fraud Review", icon: ShieldAlert };
+
 function Sidebar() {
 
     const navigate = useNavigate();
     const logout = useAuthStore((state) => state.logout);
     const user = useAuthStore((state) => state.user);
     const [isOpen, setIsOpen] = useState(false);
+
+     const items = user?.isAdmin ? [ ...navItems, adminNavItem ] : navItems;
 
     async function handleLogout() {
 
@@ -49,7 +53,7 @@ function Sidebar() {
             </div>
 
             <nav className="flex-1 px-3 py-6 space-y-1">
-                {navItems.map(({ to, label, icon: Icon }) => (
+                {items.map(({ to, label, icon: Icon }) => (
                     <NavLink
                         key={to}
                         to={to}

@@ -38,6 +38,15 @@ class AuthService {
 
     }
 
+    formatUser(user) {
+        return {
+            _id: user._id,
+            email: user.email,
+            name: user.name,
+            isAdmin: !!user.isAdmin
+        };
+    }
+
     async register({ email, password, name }) {
 
         const existingUser = await authRepository.findUserByEmail(email);
@@ -50,10 +59,11 @@ class AuthService {
 
         const tokens = await this.issueTokens(user);
 
-        await enqueueRegistrationEmail(user.email, user.name);
+        enqueueRegistrationEmail(user.email, user.name)
+            .catch((err) => console.error("Failed to enqueue registration email:", err));
 
         return {
-            user: { _id: user._id, email: user.email, name: user.name },
+            user: this.formatUser(user),
             ...tokens
         };
 
@@ -76,7 +86,7 @@ class AuthService {
         const tokens = await this.issueTokens(user);
 
         return {
-            user: { _id: user._id, email: user.email, name: user.name },
+            user: this.formatUser(user),
             ...tokens
         };
 
@@ -100,13 +110,12 @@ class AuthService {
             throw new ApiError(401, "User no longer exists");
         }
 
-        // Rotation: purana token turant revoke, naya issue
         await refreshTokenRepository.revoke(oldRefreshToken);
 
         const tokens = await this.issueTokens(user);
 
         return {
-            user: { _id: user._id, email: user.email, name: user.name },
+            user: this.formatUser(user),
             ...tokens
         };
 

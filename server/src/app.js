@@ -28,6 +28,8 @@ app.use(generalLimiter);
 const authRouter = require("./modules/auth/auth.routes");
 const accountRouter = require("./modules/accounts/account.routes");
 const transactionRouter = require("./modules/transactions/transaction.routes");
+const adminRouter = require("./modules/admin/admin.routes");
+const scheduledPaymentRouter = require("./modules/transactions/scheduledPayment.routes");
 
 app.get("/", (req, res) => {
     res.send("Ledger Service is up and running");
@@ -38,6 +40,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/auth", authRouter);
 app.use("/api/accounts", accountRouter);
 app.use("/api/transactions", transactionRouter);
+app.use("/api/scheduled-payments", scheduledPaymentRouter);
+app.use("/api/admin", adminRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

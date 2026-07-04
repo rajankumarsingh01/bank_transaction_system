@@ -29,3 +29,19 @@ Pehle MongoDB chalu honi chahiye (agar Docker use nahi kar rahe, toh local Mongo
 Phir ML service (uvicorn)
 Phir Backend (npm run dev) — kyunki isko ML service ka URL chahiye hota hai transactions ke waqt
 Aakhir mein Frontend (npm run dev)
+
+
+
+
+
+Ab Fresh Start Karo
+powershelldocker compose up --build
+
+Logs Check Karo
+Naye terminal mein:
+powershelldocker compose logs app --tail 20
+Yeh dikhna chahiye:
+✅ Environment variables validated
+Connected to Redis
+Server is running on port 3000
+Server is connected to DB

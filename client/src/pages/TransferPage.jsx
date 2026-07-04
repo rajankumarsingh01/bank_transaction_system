@@ -10,6 +10,7 @@ import Card from "../components/ui/Card";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
+import ScheduledPayments from "../components/ScheduledPayments";
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
@@ -177,6 +178,10 @@ function TransferPage() {
                     </div>
                 </Card>
             )}
+
+            <div className="mt-8">
+                <ScheduledPayments />
+            </div>
 
         </div>
     );
