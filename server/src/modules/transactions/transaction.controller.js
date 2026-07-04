@@ -36,6 +36,22 @@ const reverseTransaction = asyncHandler(async (req, res) => {
 
 });
 
+const getMyAnalytics = asyncHandler(async (req, res) => {
+
+    const account = await AccountService.getMyAccount(req.user._id);
+
+    const days = req.query.days ? Number(req.query.days) : 30;
+
+    const analytics = await TransactionService.getAnalytics(account._id, days);
+
+    return res.status(200).json(
+        new ApiResponse(200, analytics, "Analytics fetched successfully")
+    );
+
+});
+
+
+
 const getMyTransactionHistory = asyncHandler(async (req, res) => {
 
     const account = await AccountService.getMyAccount(req.user._id);
@@ -57,5 +73,6 @@ module.exports = {
     createTransaction,
     createInitialFundsTransaction,
     reverseTransaction,
-    getMyTransactionHistory
+    getMyTransactionHistory,
+    getMyAnalytics
 };

@@ -8,7 +8,10 @@ export const transactionApi = {
     getHistory: (page = 1, limit = 20) =>
         apiClient.get(`/transactions/me?page=${page}&limit=${limit}`).then((res) => res.data),
 
-    reverse: (transactionId) =>
-        apiClient.post(`/transactions/${transactionId}/reverse`).then((res) => res.data)
+   reverse: (transactionId) =>
+        apiClient.post(`/transactions/${transactionId}/reverse`).then((res) => res.data),
+
+    getAnalytics: (days = 30) =>
+        apiClient.get(`/transactions/me/analytics?days=${days}`).then((res) => res.data)
 
 };

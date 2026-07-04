@@ -9,6 +9,7 @@ import Card from "../components/ui/Card";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import { DashboardSkeleton } from "../components/ui/Skeleton";
+import AnalyticsSection from "../components/AnalyticsSection";
 
 const statusVariant = {
     COMPLETED: "success",
@@ -165,6 +166,11 @@ function DashboardPage() {
                     </div>
                 )}
             </Card>
+
+             <div>
+                <h2 className="font-semibold text-gray-900 mb-4">Spending Insights</h2>
+                <AnalyticsSection />
+            </div>
 
         </div>
     );

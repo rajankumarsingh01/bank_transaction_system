@@ -60,6 +60,37 @@ class TransactionRepository {
 
     }
 
+    async getAnalyticsSummary(accountId, sinceDate) {
+
+        const results = await Transaction.aggregate([
+            {
+                $match: {
+                    $or: [ { fromAccount: accountId }, { toAccount: accountId } ],
+                    status: "COMPLETED",
+                    createdAt: { $gte: sinceDate }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        direction: {
+                            $cond: [ { $eq: [ "$fromAccount", accountId ] }, "sent", "received" ]
+                        },
+                        day: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+                    },
+                    total: { $sum: "$amount" },
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { "_id.day": 1 } }
+        ]);
+
+        return results;
+
+    }
+
+    
+
     async findForAccount(accountId, { page = 1, limit = 20 }) {
 
         const skip = (page - 1) * limit;
@@ -97,4 +128,4 @@ class TransactionRepository {
 
 }
 
-module.exports = new TransactionRepository();
+module.exports = new TransactionRepository();    

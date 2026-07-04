@@ -142,4 +142,10 @@ router.get(
     controller.getMyTransactionHistory
 );
 
+router.get(
+    "/me/analytics",
+    authMiddleware,
+    controller.getMyAnalytics
+);
+
 module.exports = router;

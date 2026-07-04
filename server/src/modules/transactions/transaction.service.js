@@ -373,6 +373,57 @@ class TransactionService {
         return TransactionRepository.findForAccount(accountId, pagination);
     }
 
+    async getAnalytics(accountId, days = 30) {
+
+        const sinceDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+        const rawResults = await TransactionRepository.getAnalyticsSummary(accountId, sinceDate);
+
+        const dailyMap = new Map();
+        let totalSent = 0;
+        let totalReceived = 0;
+        let sentCount = 0;
+        let receivedCount = 0;
+
+        for (const row of rawResults) {
+
+            const { direction, day } = row._id;
+
+            if (!dailyMap.has(day)) {
+                dailyMap.set(day, { date: day, sent: 0, received: 0 });
+            }
+
+            dailyMap.get(day)[ direction ] = row.total;
+
+            if (direction === "sent") {
+                totalSent += row.total;
+                sentCount += row.count;
+            } else {
+                totalReceived += row.total;
+                receivedCount += row.count;
+            }
+
+        }
+
+        const dailyBreakdown = Array.from(dailyMap.values()).sort(
+            (a, b) => new Date(a.date) - new Date(b.date)
+        );
+
+        return {
+            summary: {
+                totalSent,
+                totalReceived,
+                sentCount,
+                receivedCount,
+                netFlow: totalReceived - totalSent
+            },
+            dailyBreakdown,
+            periodDays: days
+        };
+
+    }
+
 }
 
 module.exports = new TransactionService();
+
