@@ -3,12 +3,12 @@ const tokenBlackListModel = require("../../models/blackList.model");
 
 class AuthRepository {
 
-  async findUserByEmail(email) {
-        return userModel.findOne({ email }).select("+password +isAdmin");
+ async findUserByEmail(email) {
+        return userModel.findOne({ email }).select("+password +isAdmin +systemUser");
     }
 
     async findUserById(id) {
-        return userModel.findById(id).select("+isAdmin");
+        return userModel.findById(id).select("+isAdmin +systemUser");
     }
 
     async createUser(userData) {

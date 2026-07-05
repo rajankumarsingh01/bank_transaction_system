@@ -11,6 +11,8 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import Spinner from "../components/ui/Spinner";
 import ScheduledPayments from "../components/ScheduledPayments";
+import FundAccountForm from "../components/FundAccountForm";
+import { useAuthStore } from "../store/authStore";
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(amount);
@@ -37,6 +39,7 @@ function TransferPage() {
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(null);
+     const user = useAuthStore((state) => state.user);
 
     function handleChange(e) {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -116,6 +119,12 @@ function TransferPage() {
 
     return (
         <div className="max-w-lg">
+
+            {user?.systemUser && (
+                <div className="mb-6">
+                    <FundAccountForm />
+                </div>
+            )}
 
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Send Money</h1>

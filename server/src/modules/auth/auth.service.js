@@ -38,12 +38,13 @@ class AuthService {
 
     }
 
-    formatUser(user) {
+   formatUser(user) {
         return {
             _id: user._id,
             email: user.email,
             name: user.name,
-            isAdmin: !!user.isAdmin
+            isAdmin: !!user.isAdmin,
+            systemUser: !!user.systemUser
         };
     }
 

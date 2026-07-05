@@ -12,6 +12,9 @@ export const transactionApi = {
         apiClient.post(`/transactions/${transactionId}/reverse`).then((res) => res.data),
 
     getAnalytics: (days = 30) =>
-        apiClient.get(`/transactions/me/analytics?days=${days}`).then((res) => res.data)
+        apiClient.get(`/transactions/me/analytics?days=${days}`).then((res) => res.data),
+
+    fundAccount: (data) =>
+        apiClient.post("/transactions/system/initial-funds", data).then((res) => res.data)
 
 };
