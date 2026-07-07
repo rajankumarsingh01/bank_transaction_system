@@ -36,10 +36,11 @@ A full-stack, double-entry ledger and transaction processing platform with real-
 - [Getting Started](#-getting-started)
 - [API Documentation](#-api-documentation)
 - [Testing](#-testing)
-- [CI/CD](#-cicd)
+- [CI/CD](#️-cicd)
 - [Deployment](#-deployment)
 - [Key Design Decisions](#️-key-design-decisions)
 - [Roadmap](#️-roadmap)
+- [Author](#-author)
 
 ---
 
@@ -63,18 +64,22 @@ Ledger is a modular-monolith backend (Node.js/Express + MongoDB) paired with a P
 
 ## 🏗️ Architecture
 
-┌──────────────────┐   HTTPS/WebSocket   ┌───────────────────────┐
-│   React Client     │ ──────────────────> │    Node.js API         │
-│  (Vercel, Vite)    │ <────────────────── │  Express 5, JWT, Socket.IO │
-└──────────────────┘                       └───────────┬───────────┘
-│
-┌────────────────┬───────────────────┼───────────────────┬────────────────┐
-│                │                    │                   │                │
-▼                ▼                    ▼                   ▼                ▼
-┌──────────────────┐ ┌─────────────┐  ┌─────────────────┐ ┌────────────────┐ ┌──────────────┐
-│ MongoDB Atlas     │ │ Redis        │  │  FastAPI ML      │ │  BullMQ Workers │ │  SMTP (Email) │
-│ (Replica Set)     │ │ (Upstash)    │  │  Fraud Scoring   │ │  (async jobs)   │ │  Notifications │
-└──────────────────┘ └─────────────┘  └─────────────────┘ └────────────────┘ └──────────────┘
+```
+                         HTTPS / WebSocket
+   ┌────────────────┐   ───────────────────>   ┌──────────────────────────┐
+   │  React Client   │                          │       Node.js API         │
+   │ (Vercel, Vite)  │   <───────────────────   │  Express 5, JWT, Socket.IO│
+   └────────────────┘                          └─────────────┬────────────┘
+                                                               │
+                     ┌───────────────┬───────────────────┬────┴────────────┬────────────────┐
+                     │               │                   │                 │                │
+                     ▼               ▼                   ▼                 ▼                ▼
+            ┌─────────────────┐ ┌──────────┐  ┌──────────────────┐ ┌────────────────┐ ┌──────────────┐
+            │  MongoDB Atlas   │ │  Redis   │  │    FastAPI ML     │ │ BullMQ Workers │ │ SMTP (Email) │
+            │  (Replica Set)   │ │(Upstash) │  │  Fraud Scoring     │ │ (async jobs)   │ │ Notifications│
+            └─────────────────┘ └──────────┘  └──────────────────┘ └────────────────┘ └──────────────┘
+```
+
 **Why a separate ML microservice?** It isolates the Python/scikit-learn stack from the Node runtime, allows the fraud model to be retrained and redeployed independently of the API, and mirrors how fraud detection is architected in real payment systems — a scoring service the transaction pipeline calls out to, rather than business logic baked into the model.
 
 **Why a MongoDB replica set instead of standalone?** Multi-document ACID transactions (required to atomically debit one account and credit another) are only available on a replica set — non-negotiable for correct money movement. MongoDB Atlas provisions this by default even on the free tier.
@@ -147,6 +152,7 @@ A FastAPI service that scores every transfer for fraud risk before it's committe
 **Model:** Logistic Regression (scikit-learn), chosen for interpretability over black-box alternatives — appropriate for a domain where explainability matters.
 
 **Features engineered per transaction:**
+
 | Feature | Signal |
 |---|---|
 | `amount` | Raw transaction size |
@@ -176,56 +182,61 @@ A FastAPI service that scores every transfer for fraud risk before it's committe
 
 ## 📂 Project Structure
 
+```
 Bank-System/
-├── server/                        # Node.js backend
+├── server/                          # Node.js backend
 │   ├── src/
 │   │   ├── modules/
-│   │   │   ├── auth/               # Register, login, refresh rotation, logout
-│   │   │   ├── accounts/           # Account lifecycle, balance
-│   │   │   ├── transactions/       # Transfers, reversals, history, analytics, scheduled payments
-│   │   │   ├── admin/              # Fraud review, system stats
+│   │   │   ├── auth/                # Register, login, refresh rotation, logout
+│   │   │   ├── accounts/            # Account lifecycle, balance
+│   │   │   ├── transactions/        # Transfers, reversals, history, analytics, scheduled payments
+│   │   │   ├── admin/               # Fraud review, system stats
 │   │   │   ├── users/
-│   │   │   └── notifications/      # Email service
+│   │   │   └── notifications/       # Email service
 │   │   └── shared/
-│   │       ├── middleware/         # Auth (user/system/admin), rate limiting, validation, errors
-│   │       ├── logger/             # Pino structured logging + request correlation
-│   │       ├── socket/             # Socket.IO connection manager (JWT-authenticated)
-│   │       ├── queues/             # BullMQ queues + workers (email, scheduled payments)
-│   │       ├── config/             # Env validation (Zod), DB connection
-│   │       ├── database/           # MongoDB transaction session wrapper
-│   │       ├── swagger/            # OpenAPI spec generation
+│   │       ├── middleware/          # Auth (user/system/admin), rate limiting, validation, errors
+│   │       ├── logger/              # Pino structured logging + request correlation
+│   │       ├── socket/              # Socket.IO connection manager (JWT-authenticated)
+│   │       ├── queues/              # BullMQ queues + workers (email, scheduled payments)
+│   │       ├── config/              # Env validation (Zod), DB connection
+│   │       ├── database/            # MongoDB transaction session wrapper
+│   │       ├── swagger/             # OpenAPI spec generation
 │   │       └── utils/
 │   ├── tests/
-│   │   ├── integration/            # 25 Jest + Supertest test cases
+│   │   ├── integration/             # 25 Jest + Supertest test cases
 │   │   └── helpers/
-│   ├── Dockerfile                  # Multi-stage production build
-│   ├── docker-compose.yml          # App + Redis + ML service (Atlas used for MongoDB)
-│   └── docker-compose.dev.yml      # Hot-reload dev environment
+│   ├── Dockerfile                   # Multi-stage production build
+│   ├── docker-compose.yml           # App + Redis + ML service (Atlas used for MongoDB)
+│   └── docker-compose.dev.yml       # Hot-reload dev environment
 │
-├── ml-service/                     # Python fraud detection microservice
+├── ml-service/                      # Python fraud detection microservice
 │   ├── app/
-│   │   ├── main.py                 # FastAPI app + /predict, /health
-│   │   ├── model.py                # Model loading + inference
-│   │   ├── schemas.py              # Pydantic request/response models
-│   │   └── artifacts/              # Trained model (generated, gitignored)
+│   │   ├── main.py                  # FastAPI app + /predict, /health
+│   │   ├── model.py                 # Model loading + inference
+│   │   ├── schemas.py               # Pydantic request/response models
+│   │   └── artifacts/               # Trained model (generated, gitignored)
 │   ├── train/
-│   │   ├── generate_data.py        # Synthetic transaction data generator
-│   │   └── train_model.py          # Training pipeline + metrics report
-│   ├── render-build.sh             # Render build step (train model at deploy time)
+│   │   ├── generate_data.py         # Synthetic transaction data generator
+│   │   └── train_model.py           # Training pipeline + metrics report
+│   ├── render-build.sh              # Render build step (train model at deploy time)
 │   └── Dockerfile
 │
-├── client/                         # React (Vite) frontend
+├── client/                          # React (Vite) frontend
 │   └── src/
-│       ├── api/                    # Axios client (auto-refresh) + resource API modules
-│       ├── components/{layout,ui}  # Sidebar, layout, charts, reusable UI primitives
-│       ├── hooks/                  # useSocket (real-time notifications)
-│       ├── pages/                  # Login, Register, Dashboard, Transfer, History, Account, Admin
-│       ├── routes/                 # Auth guard
-│       └── store/                  # Zustand auth store (persisted)
+│       ├── api/                     # Axios client (auto-refresh) + resource API modules
+│       ├── components/
+│       │   ├── layout/              # Sidebar, layout
+│       │   └── ui/                  # Charts, reusable UI primitives
+│       ├── hooks/                   # useSocket (real-time notifications)
+│       ├── pages/                   # Login, Register, Dashboard, Transfer, History, Account, Admin
+│       ├── routes/                  # Auth guard
+│       └── store/                   # Zustand auth store (persisted)
 │
-└── .github/workflows/               # CI/CD pipelines
-├── backend-ci.yml               # Lint, test, Docker build verification
-└── ml-service-ci.yml            # Train model, verify app import, Docker build
+└── .github/
+    └── workflows/                   # CI/CD pipelines
+        ├── backend-ci.yml           # Lint, test, Docker build verification
+        └── ml-service-ci.yml        # Train model, verify app import, Docker build
+```
 
 ---
 
